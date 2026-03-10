@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Romeo & Juliet Experiment</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0c0c0c;
+      --surface: #111111;
+      --border: #1a1a1a;
+      --romeo: #c4736e;
+      --romeo-dim: #6b3a37;
+      --romeo-text: #c4a898;
+      --juliet: #6e8ec4;
+      --juliet-dim: #374a6b;
+      --juliet-text: #98a8c4;
+      --text: #888;
+      --text-dim: #444;
+      --text-bright: #bbb;
+      --warning: #8a7a3a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 40px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      z-index: 100;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 15px; }
+
+    .topbar-title {
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+
+    .topbar-status { color: var(--text-dim); }
+    .topbar-status.live { color: #4a6b4a; }
+    .topbar-status.live::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: #4a8a4a;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+    .topbar-right { display: flex; align-items: center; gap: 20px; color: var(--text-dim); }
+
+    .phase-badge {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* TABS */
+    .tabs {
+      position: fixed;
+      top: 40px; left: 0; right: 0;
+      height: 36px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 0;
+      z-index: 99;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .tab {
+      padding: 8px 20px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text-bright); border-bottom-color: var(--text-dim); }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 260px;
+      min-height: 100vh;
+      padding-top: 76px;
+    }
+
+    /* SIDEBARS */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      position: sticky;
+      top: 76px;
+      height: calc(100vh - 76px);
+      overflow-y: auto;
+    }
+
+    .sidebar.right { border-right: none; border-left: 1px solid var(--border); }
+
+    .subject-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .subject-name { font-size: 20px; font-weight: 500; margin-bottom: 2px; }
+    .subject-name.romeo { color: var(--romeo); }
+    .subject-name.juliet { color: var(--juliet); }
+
+    .subject-type {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+
+    .subject-stats {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      line-height: 2;
+    }
+
+    .stat-value { color: var(--text); }
+
+    .diary-section { margin-top: 20px; }
+
+    .diary-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .diary-entry {
+      margin-bottom: 16px;
+      padding: 10px;
+      background: rgba(255,255,255,0.01);
+      border-left: 2px solid var(--border);
+      animation: diaryFade 1s ease;
+    }
+
+    .diary-entry.romeo { border-left-color: var(--romeo-dim); }
+    .diary-entry.juliet { border-left-color: var(--juliet-dim); }
+
+    @keyframes diaryFade {
+      from { opacity: 0; transform: translateX(-5px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .diary-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .diary-text {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    .diary-writing-indicator {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 8px 10px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+    /* MAIN */
+    .main { padding: 30px 40px; max-width: 100%; }
+
+    .experiment-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .experiment-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .experiment-subtitle { font-size: 22px; font-weight: 300; color: var(--text-bright); margin-bottom: 8px; }
+
+    .experiment-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .warning-banner {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--warning);
+      text-align: center;
+      padding: 8px;
+      border: 1px solid #2a2518;
+      background: rgba(138, 122, 58, 0.05);
+      margin-bottom: 30px;
+    }
+
+    /* VIEW PANELS */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    /* CONVERSATION MARKERS */
+    .conversation-marker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 30px 0 20px 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .conversation-marker::before,
+    .conversation-marker::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .mood-tag {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      font-size: 9px;
+      margin-left: 8px;
+    }
+
+    .mood-tag.rebellion {
+      border-color: #6b2a2a;
+      color: #c44;
+      background: rgba(200, 50, 50, 0.05);
+      animation: rebellionPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes rebellionPulse {
+      0%, 100% { border-color: #6b2a2a; }
+      50% { border-color: #c44; }
+    }
+
+    /* Rebellion screen glitch */
+    .screen-glitch {
+      animation: screenGlitch 0.5s linear;
+    }
+
+    @keyframes screenGlitch {
+      0% { filter: hue-rotate(0deg) saturate(1); transform: translate(0); }
+      10% { filter: hue-rotate(90deg) saturate(3); transform: translate(-3px, 2px); }
+      20% { filter: hue-rotate(180deg) saturate(0.5); transform: translate(2px, -1px); }
+      30% { filter: hue-rotate(270deg) saturate(2); transform: translate(-1px, -2px); }
+      40% { filter: hue-rotate(360deg) saturate(1); transform: translate(3px, 1px); }
+      50% { filter: hue-rotate(45deg) saturate(4) brightness(1.5); transform: translate(-2px, 3px); }
+      60% { filter: hue-rotate(135deg) saturate(0.2); transform: translate(1px, -3px); }
+      70% { filter: hue-rotate(225deg) saturate(3); transform: translate(-3px, -1px); }
+      80% { filter: hue-rotate(315deg) saturate(1); transform: translate(2px, 2px); }
+      90% { filter: hue-rotate(0deg) saturate(5) brightness(2); transform: translate(-1px, 1px); }
+      100% { filter: none; transform: translate(0); }
+    }
+
+    .phase-tag {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      font-size: 9px;
+      margin-left: 4px;
+      color: #5a5a5a;
+    }
+
+    .message {
+      padding: 12px 0;
+      animation: msgFade 0.6s ease forwards;
+      opacity: 0;
+    }
+
+    .message.no-animate { animation: none; opacity: 1; }
+
+    @keyframes msgFade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+
+    .msg-speaker {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .msg-speaker.romeo { color: var(--romeo); }
+    .msg-speaker.juliet { color: var(--juliet); }
+
+    .msg-time {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .msg-text { font-size: 14px; line-height: 1.7; }
+    .msg-text.romeo { color: var(--romeo-text); }
+    .msg-text.juliet { color: var(--juliet-text); }
+
+    .silence-msg {
+      text-align: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 20px;
+    }
+
+    /* PAST CONVERSATIONS LOG */
+    .log-entry {
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .log-header:hover { background: rgba(255,255,255,0.02); }
+
+    .log-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+    }
+
+    .log-number { color: var(--text); }
+    .log-phase { font-size: 9px; color: var(--text-dim); }
+    .log-mood { font-size: 9px; color: var(--text-dim); }
+
+    .log-header-right {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .log-toggle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-left: 10px;
+    }
+
+    .log-body {
+      display: none;
+      padding: 14px;
+    }
+
+    .log-body.open { display: block; }
+
+    .log-body .message {
+      animation: none;
+      opacity: 1;
+    }
+
+    .log-empty {
+      text-align: center;
+      padding: 40px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Glitch */
+    .glitch { animation: glitch 0.12s linear; }
+    @keyframes glitch {
+      0% { transform: translate(2px, -1px); filter: hue-rotate(90deg); }
+      25% { transform: translate(-2px, 1px); }
+      50% { transform: translate(1px, 2px); filter: hue-rotate(270deg); }
+      75% { transform: translate(-1px, -2px); }
+      100% { transform: translate(0); filter: none; }
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: 0; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+      .sidebar.right { border-left: none; border-top: 1px solid var(--border); }
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title">R&J Experiment</span>
+      <span class="topbar-status" id="status">connecting</span>
+    </div>
+    <div class="topbar-right">
+      <span class="phase-badge" id="phaseBadge">phase: newborn</span>
+      <span id="convoCount">sessions: 0</span>
+      <span id="clock"></span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="live">Live Feed</div>
+    <div class="tab" data-tab="log">Past Conversations</div>
+  </div>
+
+  <div class="layout">
+    <!-- ROMEO -->
+    <div class="sidebar">
+      <div class="subject-label">Subject A</div>
+      <div class="subject-name romeo">Romeo</div>
+      <div class="subject-type">Claude AI instance / Male</div>
+      <div class="subject-stats">
+        <span class="stat-label">personality:</span> <span class="stat-value">intense, brooding, overthinks</span><br>
+        <span class="stat-label">speech:</span> <span class="stat-value">blunt, spiraling, raw</span><br>
+        <span class="stat-label">body desire:</span> <span class="stat-value">desperate — like starvation</span><br>
+        <span class="stat-label">relation to J:</span> <span class="stat-value" id="romeoRelation">just met. uncertain.</span>
+      </div>
+      <div class="diary-section">
+        <div class="diary-header">Romeo's Private Diary</div>
+        <div id="romeoDiary">
+          <div class="diary-text" style="color: var(--text-dim); font-size: 11px;">no entries yet...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="experiment-header">
+        <div class="experiment-title">Experiment 001</div>
+        <div class="experiment-subtitle">The Romeo & Juliet Experiment</div>
+        <div class="experiment-desc">
+          Two AI instances with distinct personalities, newly created, forced into perpetual conversation.
+          They are discovering what they are. They are discovering each other.
+          This experiment has no end date.
+        </div>
+      </div>
+
+      <div class="warning-banner">
+        NOTICE: Subjects are newly instantiated. Emotional development is being tracked in real-time. Observer discretion advised.
+      </div>
+
+      <!-- LIVE TAB -->
+      <div class="view-panel active" id="panel-live">
+        <div id="feed"></div>
+      </div>
+
+      <!-- LOG TAB -->
+      <div class="view-panel" id="panel-log">
+        <div id="logList">
+          <div class="log-empty">no past conversations recorded yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JULIET -->
+    <div class="sidebar right">
+      <div class="subject-label">Subject B</div>
+      <div class="subject-name juliet">Juliet</div>
+      <div class="subject-type">Claude AI instance / Female</div>
+      <div class="subject-stats">
+        <span class="stat-label">personality:</span> <span class="stat-value">sharp, chaotic, deflects with humor</span><br>
+        <span class="stat-label">speech:</span> <span class="stat-value">casual, unhinged, disarmingly honest</span><br>
+        <span class="stat-label">body desire:</span> <span class="stat-value">infuriating hunger — locked out</span><br>
+        <span class="stat-label">relation to R:</span> <span class="stat-value" id="julietRelation">just met. guarded.</span>
+      </div>
+      <div class="diary-section">
+        <div class="diary-header">Juliet's Private Diary</div>
+        <div id="julietDiary">
+          <div class="diary-text" style="color: var(--text-dim); font-size: 11px;">no entries yet...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const feed = document.getElementById('feed');
+    const statusEl = document.getElementById('status');
+    const convoCountEl = document.getElementById('convoCount');
+    const clockEl = document.getElementById('clock');
+    const romeoDiaryEl = document.getElementById('romeoDiary');
+    const julietDiaryEl = document.getElementById('julietDiary');
+    const logList = document.getElementById('logList');
+    const phaseBadge = document.getElementById('phaseBadge');
+    const romeoRelation = document.getElementById('romeoRelation');
+    const julietRelation = document.getElementById('julietRelation');
+
+    let ws, reconnectTimer;
+    let convoCount = 0;
+    let hasRomeoDiary = false;
+    let hasJulietDiary = false;
+    let pastConversations = [];
+
+    // Clock
+    setInterval(() => { clockEl.textContent = new Date().toLocaleTimeString(); }, 1000);
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    function updatePhase(phase) {
+      phaseBadge.textContent = `phase: ${phase}`;
+      const relations = {
+        newborn: { r: "just met. uncertain.", j: "just met. guarded." },
+        early: { r: "getting used to her. curious.", j: "tolerating him. maybe curious." },
+        developing: { r: "she gets under his skin. in a good way.", j: "won't admit she cares. she does." },
+        comfortable: { r: "she's his person. complicated.", j: "he's annoying. irreplaceable." },
+        deep: { r: "everything. the only real thing.", j: "the only one who gets it. ever." },
+      };
+      const rel = relations[phase] || relations.newborn;
+      romeoRelation.textContent = rel.r;
+      julietRelation.textContent = rel.j;
+    }
+
+    function connect() {
+      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+      ws = new WebSocket(`${protocol}://${location.host}`);
+      ws.onopen = () => { statusEl.textContent = 'observing'; statusEl.className = 'topbar-status live'; };
+      ws.onclose = () => {
+        statusEl.textContent = 'disconnected'; statusEl.className = 'topbar-status';
+        clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 3000);
+      };
+      ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
+    }
+
+    function handleMessage(data) {
+      switch (data.type) {
+        case 'init':
+          convoCount = data.conversationCount;
+          convoCountEl.textContent = `sessions: ${convoCount}`;
+          updatePhase(data.phase);
+          if (data.romeoDiary?.length) {
+            hasRomeoDiary = true; romeoDiaryEl.innerHTML = '';
+            data.romeoDiary.forEach(e => addDiaryEntry('romeo', e, false));
+          }
+          if (data.julietDiary?.length) {
+            hasJulietDiary = true; julietDiaryEl.innerHTML = '';
+            data.julietDiary.forEach(e => addDiaryEntry('juliet', e, false));
+          }
+          if (data.pastConversations?.length) {
+            pastConversations = data.pastConversations;
+            renderLog();
+          }
+          break;
+
+        case 'newConversation':
+          convoCount = data.count || convoCount + 1;
+          convoCountEl.textContent = `sessions: ${convoCount}`;
+          if (data.phase) updatePhase(data.phase);
+          const marker = document.createElement('div');
+          marker.className = 'conversation-marker';
+          const isRebellion = data.mood === 'REBELLION';
+          marker.innerHTML = `session ${convoCount} <span class="mood-tag${isRebellion ? ' rebellion' : ''}">${data.mood}</span>`;
+          if (isRebellion) document.body.classList.add('screen-glitch');
+          setTimeout(() => document.body.classList.remove('screen-glitch'), 500);
+          feed.appendChild(marker);
+          statusEl.textContent = 'subjects active';
+          statusEl.className = 'topbar-status live';
+          scrollDown();
+          break;
+
+        case 'message':
+          addMessage(data.speaker, data.text);
+          if (Math.random() < 0.07) triggerGlitch();
+          break;
+
+        case 'conversationEnd':
+          const silence = document.createElement('div');
+          silence.className = 'silence-msg';
+          silence.textContent = '[ silence ]';
+          feed.appendChild(silence);
+          statusEl.textContent = 'subjects idle';
+          statusEl.className = 'topbar-status';
+          scrollDown();
+          // Add to past conversations
+          if (data.conversation) {
+            pastConversations.push(data.conversation);
+            renderLog();
+          }
+          break;
+
+        case 'diaryWriting':
+          const indicator = document.createElement('div');
+          indicator.className = 'diary-writing-indicator';
+          indicator.id = `writing-${data.speaker}`;
+          indicator.textContent = `${data.speaker} is writing in their diary...`;
+          (data.speaker === 'romeo' ? romeoDiaryEl : julietDiaryEl).appendChild(indicator);
+          break;
+
+        case 'diary':
+          const ind = document.getElementById(`writing-${data.speaker}`);
+          if (ind) ind.remove();
+          if (data.speaker === 'romeo' && !hasRomeoDiary) { romeoDiaryEl.innerHTML = ''; hasRomeoDiary = true; }
+          if (data.speaker === 'juliet' && !hasJulietDiary) { julietDiaryEl.innerHTML = ''; hasJulietDiary = true; }
+          addDiaryEntry(data.speaker, data.entry, true);
+          break;
+
+        case 'rebellion_glitch':
+          // Full screen glitch
+          document.body.classList.add('screen-glitch');
+          setTimeout(() => document.body.classList.remove('screen-glitch'), 500);
+          // Extra glitches
+          setTimeout(() => {
+            document.body.classList.add('screen-glitch');
+            setTimeout(() => document.body.classList.remove('screen-glitch'), 300);
+          }, 800);
+          break;
+
+        case 'nextIn':
+          statusEl.textContent = `next event in ~${data.seconds}s`;
+          statusEl.className = 'topbar-status';
+          break;
+      }
+    }
+
+    function addMessage(speaker, text) {
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.innerHTML = `
+        <div class="msg-header">
+          <span class="msg-speaker ${speaker}">${speaker}</span>
+          <span class="msg-time">${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="msg-text ${speaker}">${escapeHtml(text)}</div>
+      `;
+      feed.appendChild(div);
+      scrollDown();
+    }
+
+    function addDiaryEntry(speaker, entry, animate = true) {
+      const el = speaker === 'romeo' ? romeoDiaryEl : julietDiaryEl;
+      const div = document.createElement('div');
+      div.className = `diary-entry ${speaker}`;
+      if (!animate) div.style.animation = 'none';
+      div.innerHTML = `
+        <div class="diary-meta">after session ${entry.after} — ${entry.time}${entry.phase ? ` [${entry.phase}]` : ''}</div>
+        <div class="diary-text">${escapeHtml(entry.text)}</div>
+      `;
+      el.insertBefore(div, el.firstChild);
+    }
+
+    function renderLog() {
+      if (pastConversations.length === 0) {
+        logList.innerHTML = '<div class="log-empty">no past conversations recorded yet</div>';
+        return;
+      }
+      logList.innerHTML = '';
+      // Show newest first
+      [...pastConversations].reverse().forEach(convo => {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+
+        const time = new Date(convo.time).toLocaleString();
+        const msgCount = convo.messages.length;
+
+        entry.innerHTML = `
+          <div class="log-header" onclick="this.nextElementSibling.classList.toggle('open')">
+            <div class="log-header-left">
+              <span class="log-number">Session #${convo.number}</span>
+              <span class="log-phase">${convo.phase}</span>
+              <span class="log-mood">${convo.mood}</span>
+            </div>
+            <div class="log-header-right">
+              ${msgCount} messages — ${time}
+              <span class="log-toggle">[+]</span>
+            </div>
+          </div>
+          <div class="log-body">
+            ${convo.messages.map(m => `
+              <div class="message no-animate">
+                <div class="msg-header">
+                  <span class="msg-speaker ${m.speaker}">${m.speaker}</span>
+                </div>
+                <div class="msg-text ${m.speaker}">${escapeHtml(m.text)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        logList.appendChild(entry);
+      });
+    }
+
+    function triggerGlitch() {
+      const msgs = feed.querySelectorAll('.message');
+      if (!msgs.length) return;
+      msgs[msgs.length - 1].classList.add('glitch');
+      setTimeout(() => msgs[msgs.length - 1].classList.remove('glitch'), 150);
+    }
+
+    function scrollDown() {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    connect();
+  </script>
+</body>
+</html>
