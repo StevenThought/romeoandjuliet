@@ -436,12 +436,12 @@ async function generateReply(speaker, systemPrompt, mood, extraContext) {
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 200,
+    max_tokens: 80,
     temperature: 1.0,
     system: systemPrompt +
-      `\n\n[Current mood energy: ${mood}. Let this color your response but dont announce it.]` + extra,
+      `\n\n[Current mood energy: ${mood}. Let this color your response but dont announce it.]\n\nCRITICAL LENGTH RULE: Keep your response to 1-2 SHORT sentences max. Like a text message. Not a paragraph. Think: what would someone actually type with their thumbs? Sometimes just a few words. "idk man" or "wait what" is a perfectly valid response. NEVER write more than 3 sentences. Shorter is always better.` + extra,
     messages: messages.length === 0
-      ? [{ role: "user", content: `[${other} is here. Say something. Mood: ${mood}]` }]
+      ? [{ role: "user", content: `[${other} is here. Say something. Keep it short like a text message. Mood: ${mood}]` }]
       : messages,
   });
 
