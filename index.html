@@ -228,33 +228,68 @@
     }
 
     .diary-entry {
-      margin-bottom: 16px;
-      padding: 10px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
       background: rgba(255,255,255,0.01);
-      border-left: 2px solid var(--border);
-      animation: diaryFade 1s ease;
+      animation: diaryFade 0.6s ease;
     }
 
-    .diary-entry.romeo { border-left-color: var(--romeo-dim); }
-    .diary-entry.juliet { border-left-color: var(--juliet-dim); }
+    .diary-entry.romeo { border-left: 2px solid var(--romeo-dim); }
+    .diary-entry.juliet { border-left: 2px solid var(--juliet-dim); }
 
     @keyframes diaryFade {
       from { opacity: 0; transform: translateX(-5px); }
       to { opacity: 1; transform: translateX(0); }
     }
 
+    .diary-entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .diary-entry-header:hover { background: rgba(255,255,255,0.02); }
+
     .diary-meta {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 9px;
       color: var(--text-dim);
-      margin-bottom: 6px;
     }
 
+    .diary-meta .rebellion-tag {
+      color: #c44;
+      margin-left: 4px;
+    }
+
+    .diary-toggle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .diary-body {
+      display: none;
+      padding: 8px 10px 10px 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .diary-body.open { display: block; }
+
     .diary-text {
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.6;
       color: var(--text);
       font-style: italic;
+    }
+
+    .diary-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
     }
 
     .diary-writing-indicator {
@@ -708,8 +743,9 @@
       </div>
       <div class="diary-section">
         <div class="diary-header">Romeo's Private Diary</div>
+        <div class="diary-count" id="romeoCount">0 entries</div>
         <div id="romeoDiary">
-          <div class="diary-text" style="color: var(--text-dim); font-size: 11px;">no entries yet...</div>
+          <div class="diary-text" style="color: var(--text-dim); font-size: 11px; padding: 8px;">no entries yet...</div>
         </div>
       </div>
     </div>
@@ -746,8 +782,9 @@
       </div>
       <div class="diary-section">
         <div class="diary-header">Juliet's Private Diary</div>
+        <div class="diary-count" id="julietCount">0 entries</div>
         <div id="julietDiary">
-          <div class="diary-text" style="color: var(--text-dim); font-size: 11px;">no entries yet...</div>
+          <div class="diary-text" style="color: var(--text-dim); font-size: 11px; padding: 8px;">no entries yet...</div>
         </div>
       </div>
     </div>
@@ -913,14 +950,35 @@
       scrollDown();
     }
 
+    let romeoEntryCount = 0;
+    let julietEntryCount = 0;
+
     function addDiaryEntry(speaker, entry, animate = true) {
       const el = speaker === 'romeo' ? romeoDiaryEl : julietDiaryEl;
+      const countEl = speaker === 'romeo' ? document.getElementById('romeoCount') : document.getElementById('julietCount');
+
+      if (speaker === 'romeo') romeoEntryCount++;
+      else julietEntryCount++;
+      const count = speaker === 'romeo' ? romeoEntryCount : julietEntryCount;
+      countEl.textContent = `${count} ${count === 1 ? 'entry' : 'entries'}`;
+
       const div = document.createElement('div');
       div.className = `diary-entry ${speaker}`;
       if (!animate) div.style.animation = 'none';
+
+      const rebellionTag = entry.rebellion ? '<span class="rebellion-tag">REBELLION</span>' : '';
+      const soloTag = entry.solo ? '<span style="color:#555"> solo</span>' : '';
+      const preview = escapeHtml(entry.text).substring(0, 50) + (entry.text.length > 50 ? '...' : '');
+
       div.innerHTML = `
-        <div class="diary-meta">after session ${entry.after} — ${entry.time}${entry.phase ? ` [${entry.phase}]` : ''}</div>
-        <div class="diary-text">${escapeHtml(entry.text)}</div>
+        <div class="diary-entry-header" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.diary-toggle').textContent = this.nextElementSibling.classList.contains('open') ? '[-]' : '[+]'">
+          <div class="diary-meta">#${count} — session ${entry.after} ${rebellionTag}${soloTag}</div>
+          <span class="diary-toggle">[+]</span>
+        </div>
+        <div class="diary-body">
+          <div class="diary-meta" style="margin-bottom: 6px;">${entry.time}${entry.phase ? ` / ${entry.phase}` : ''}</div>
+          <div class="diary-text">${escapeHtml(entry.text)}</div>
+        </div>
       `;
       el.insertBefore(div, el.firstChild);
     }
