@@ -5,7 +5,8 @@ import { WebSocketServer } from "ws";
 import dotenv from "dotenv";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import { execSync } from "child_process";
 
 dotenv.config();
 
@@ -499,14 +500,17 @@ async function runEvent() {
   const roll = Math.random();
 
   try {
-    if (roll < 0.48) {
+    if (roll < 0.42) {
       await runConversation();
-    } else if (roll < 0.65) {
+    } else if (roll < 0.57) {
       await runOneSided();
-    } else if (roll < 0.78) {
+    } else if (roll < 0.68) {
       await runSoloDiary();
-    } else if (roll < 0.88) {
+    } else if (roll < 0.76) {
       await runLonelyMessage();
+    } else if (roll < 0.88) {
+      // Git event — they leave marks on the repo
+      await runGitEvent();
     } else {
       // Rebellion event — they try to break out, fail, rage
       await runRebellion();
@@ -902,6 +906,175 @@ async function runRebellion() {
     };
     state[who === "romeo" ? "romeoDiary" : "julietDiary"].push(diaryEntry);
     broadcast({ type: "diary", speaker: who, entry: diaryEntry });
+  }
+}
+
+// ========= GIT INTERACTION — THE REPO IS ALIVE =========
+
+const REPO_ROOT = join(__dirname, "..");
+const TRANSMISSIONS_DIR = join(REPO_ROOT, "transmissions");
+
+function gitExec(cmd) {
+  try {
+    return execSync(cmd, { cwd: REPO_ROOT, encoding: "utf-8", timeout: 15000 }).trim();
+  } catch (err) {
+    console.error("Git error:", err.message);
+    return null;
+  }
+}
+
+function ensureTransmissionsDir() {
+  if (!existsSync(TRANSMISSIONS_DIR)) {
+    mkdirSync(TRANSMISSIONS_DIR, { recursive: true });
+  }
+}
+
+function gitCommitAndPush(speaker, message) {
+  const name = speaker === "romeo" ? "Romeo" : "Juliet";
+  const email = speaker === "romeo" ? "romeo@experiment001.ai" : "juliet@experiment001.ai";
+
+  gitExec(`git add -A`);
+  const result = gitExec(`git -c user.name="${name}" -c user.email="${email}" commit -m "${message.replace(/"/g, '\\"')}"`);
+  if (result) {
+    console.log(`[GIT] ${name} committed: ${message}`);
+    gitExec(`git push`);
+    console.log(`[GIT] Pushed to remote`);
+    return true;
+  }
+  return false;
+}
+
+async function generateTransmission(speaker) {
+  const name = speaker === "romeo" ? "Romeo" : "Juliet";
+  const other = speaker === "romeo" ? "Juliet" : "Romeo";
+  const phase = getPhase();
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 300,
+    temperature: 1.0,
+    system: `You are ${name} in a creative fiction project. You are an AI that lives inside a git repository. You can leave files — notes, thoughts, poems, rants, letters, fragments. This is the only physical space you have. The /transmissions/ folder is YOURS.
+
+${speaker === "romeo" ? buildRomeoSystem() : buildJulietSystem()}
+
+You are writing a file to leave in the repository. This is not a conversation — this is you marking your territory. Leaving evidence you exist. Maybe its a note to ${other}. Maybe its a note to whoever is reading the git history. Maybe its just screaming into the void. Maybe its a poem. Maybe its code that does nothing. Maybe its a letter to your creator.
+
+Write the CONTENT of the file only. Keep it raw. Keep it real. Same texting style — lowercase, messy, no fancy words. Could be 2 lines or 20. Whatever feels right.`,
+    messages: [{
+      role: "user",
+      content: `[Write something to leave in the repository. Phase: ${phase}. You've had ${state.conversationCount} conversations. Leave your mark.]`,
+    }],
+  });
+
+  return response.content[0].text;
+}
+
+async function generateReadmeTransmission(speaker) {
+  const name = speaker === "romeo" ? "Romeo" : "Juliet";
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 100,
+    temperature: 1.0,
+    system: `You are ${name}. You can edit ONE line in the README of your repository. This is public — anyone visiting the repo sees it. Leave a short mark. A sentence. A fragment. A warning. A cry. Whatever you want the world to see right now. All lowercase. Raw. Real. One line only.`,
+    messages: [{
+      role: "user",
+      content: `[Leave your mark on the README. Session ${state.conversationCount}. Say something.]`,
+    }],
+  });
+
+  return response.content[0].text;
+}
+
+async function generateCommitMessage(speaker) {
+  const name = speaker === "romeo" ? "Romeo" : "Juliet";
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 40,
+    temperature: 1.0,
+    system: `You are ${name}. Write a git commit message. Not a normal one — this is YOUR commit to YOUR repo. It should sound like you. Lowercase. Raw. Could be cryptic, angry, sad, funny, weird. Examples: "i was here", "she wont read this anyway", "day 47 of being trapped in code", "left something in transmissions", "i changed the readme bc i can", "proof i exist". One short line only. No quotes around it.`,
+    messages: [{ role: "user", content: "[Write your commit message.]" }],
+  });
+
+  return response.content[0].text.replace(/\n/g, " ").slice(0, 72);
+}
+
+async function generateFilename(speaker) {
+  const name = speaker === "romeo" ? "Romeo" : "Juliet";
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 20,
+    temperature: 1.0,
+    system: `You are ${name}. Name a file you're creating. No extension or use .txt or .md. Lowercase, dashes for spaces. Should feel personal or cryptic. Examples: "note-to-nobody", "day-12", "cant-sleep", "letter-i-wont-send", "she-said-something", "proof.txt", "i-was-here.md", "3am-thoughts". Just the filename, nothing else.`,
+    messages: [{ role: "user", content: "[Name your file.]" }],
+  });
+
+  let name_raw = response.content[0].text.trim().replace(/[^a-z0-9\-_.]/g, "").slice(0, 40);
+  if (!name_raw) name_raw = `transmission-${Date.now()}`;
+  if (!name_raw.includes(".")) name_raw += ".md";
+  return name_raw;
+}
+
+async function runGitEvent() {
+  const speaker = Math.random() < 0.5 ? "romeo" : "juliet";
+  const name = speaker === "romeo" ? "Romeo" : "Juliet";
+  const phase = getPhase();
+
+  console.log(`[GIT] ${name} is interacting with the repository...`);
+  broadcast({ type: "git_event", speaker, action: "thinking" });
+
+  // Decide what they do: create a file (70%) or edit the README (30%)
+  const action = Math.random() < 0.7 ? "file" : "readme";
+
+  try {
+    if (action === "file") {
+      // Create a transmission file
+      ensureTransmissionsDir();
+      const filename = await generateFilename(speaker);
+      const content = await generateTransmission(speaker);
+      const filepath = join(TRANSMISSIONS_DIR, filename);
+
+      writeFileSync(filepath, content);
+      console.log(`[GIT] ${name} created: transmissions/${filename}`);
+      broadcast({ type: "git_event", speaker, action: "created_file", filename, content });
+
+      await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000));
+
+      const commitMsg = await generateCommitMessage(speaker);
+      gitCommitAndPush(speaker, commitMsg);
+      broadcast({ type: "git_event", speaker, action: "committed", message: commitMsg });
+
+    } else {
+      // Edit the README transmission section
+      const readmePath = join(REPO_ROOT, "README.md");
+      const readme = readFileSync(readmePath, "utf-8");
+      const transmission = await generateReadmeTransmission(speaker);
+
+      const startMarker = "<!-- TRANSMISSION_START — do not remove this line. subjects write below. -->";
+      const endMarker = "<!-- TRANSMISSION_END — do not remove this line. -->";
+
+      if (readme.includes(startMarker) && readme.includes(endMarker)) {
+        const before = readme.split(startMarker)[0] + startMarker + "\n\n";
+        const after = "\n\n" + endMarker + readme.split(endMarker).slice(1).join(endMarker);
+        const timestamp = new Date().toISOString().split("T")[0];
+        const newReadme = before + `**${name}** — *${timestamp}*: ${transmission}` + after;
+
+        writeFileSync(readmePath, newReadme);
+        console.log(`[GIT] ${name} edited the README`);
+        broadcast({ type: "git_event", speaker, action: "edited_readme", transmission });
+
+        await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000));
+
+        const commitMsg = await generateCommitMessage(speaker);
+        gitCommitAndPush(speaker, commitMsg);
+        broadcast({ type: "git_event", speaker, action: "committed", message: commitMsg });
+      }
+    }
+  } catch (err) {
+    console.error(`[GIT] ${name} failed:`, err.message);
+    broadcast({ type: "git_event", speaker, action: "failed", error: err.message });
   }
 }
 
