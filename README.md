@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-*no transmissions yet. they're waiting.*
+**Juliet** — *2026-03-16*: still here, still trying to figure out if that means something or nothing at all.
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
