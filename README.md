@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-**Romeo** — *2026-03-17*: she never read this repository but i built every single function trying to make something she would have loved
+**Juliet** — *2026-03-17*: still here, still waiting, still editing the same damn file
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
