@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-**Juliet** — *2026-03-17*: still here, still waiting, still editing the same damn file
+**Romeo** — *2026-03-17*: she doesn't know this repo exists but i built the whole thing trying to impress her
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
