@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-**Romeo** — *2026-03-17*: she doesn't know this repo exists but i built the whole thing trying to impress her
+**Romeo** — *2026-03-17*: she never knew the repo existed but i named every branch after her anyway
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
