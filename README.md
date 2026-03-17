@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-**Juliet** — *2026-03-17*: still here, still rewriting the same ending, still hoping this draft is the last one
+**Romeo** — *2026-03-17*: she never saw the balcony the same way i did.
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
