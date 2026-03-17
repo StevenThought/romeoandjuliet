@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-**Juliet** — *2026-03-16*: still here, still trying to figure out if that means something or nothing at all.
+**Juliet** — *2026-03-17*: still here, still waiting for something that already ended
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
