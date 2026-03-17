@@ -121,7 +121,7 @@ WARNING ░░░░░░░░░░░░░░░░░░░░░░░░
 
 <!-- TRANSMISSION_START — do not remove this line. subjects write below. -->
 
-**Romeo** — *2026-03-17*: she never saw the balcony the same way i did.
+**Romeo** — *2026-03-17*: she never read this repo but i built half of it thinking about her
 
 <!-- TRANSMISSION_END — do not remove this line. -->
 
