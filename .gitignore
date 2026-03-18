@@ -1,3 +1,4 @@
 node_modules/
 .env
 server/data.json
+temp_screen*.png

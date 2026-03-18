@@ -384,6 +384,124 @@
       50% { border-color: #c44; }
     }
 
+    .mood-tag.discovery {
+      border-color: #3a6b5a;
+      color: #5aaa8a;
+      background: rgba(90, 170, 138, 0.05);
+    }
+
+    /* RELATIONSHIP BAR */
+    .relationship-bar {
+      margin: 12px 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .rel-track {
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      margin-top: 4px;
+      position: relative;
+    }
+
+    .rel-fill {
+      height: 100%;
+      transition: width 1s ease, background 1s ease;
+    }
+
+    /* DREAM MESSAGE */
+    .dream-msg {
+      padding: 16px 20px;
+      margin: 10px 0;
+      border: 1px solid #1a1a2a;
+      background: rgba(20, 20, 40, 0.3);
+      animation: dreamFade 2s ease;
+    }
+
+    .dream-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #4a4a7a;
+      margin-bottom: 8px;
+    }
+
+    .dream-text {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #6a6a9a;
+      font-style: italic;
+    }
+
+    @keyframes dreamFade {
+      from { opacity: 0; filter: blur(4px); }
+      to { opacity: 1; filter: blur(0); }
+    }
+
+    /* GIT EVENT */
+    .git-msg {
+      padding: 10px 14px;
+      margin: 8px 0;
+      border: 1px solid #1a2a1a;
+      background: rgba(20, 40, 20, 0.15);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #4a8a4a;
+      animation: msgFade 0.6s ease forwards;
+    }
+
+    .git-msg .filename { color: #6aaa6a; }
+    .git-msg .commit-msg { color: #5a7a5a; font-style: italic; }
+
+    /* DISCOVER EVENT */
+    .discover-msg {
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: 1px solid #2a2518;
+      background: rgba(60, 50, 30, 0.15);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #aa9a5a;
+      animation: msgFade 0.6s ease forwards;
+    }
+
+    /* MEMORABLE QUOTES SECTION */
+    .quotes-section {
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .quotes-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .quote-entry {
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-left: 2px solid var(--border);
+      font-size: 11px;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .quote-entry .quote-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: var(--text-dim);
+      font-style: normal;
+      margin-top: 2px;
+    }
+
     /* Rebellion screen glitch */
     .screen-glitch {
       animation: screenGlitch 0.5s linear;
@@ -667,6 +785,7 @@
     </div>
     <div class="topbar-right">
       <span class="phase-badge" id="phaseBadge">phase: newborn</span>
+      <span id="relScore" style="font-size:9px;color:var(--text-dim)">bond: 50</span>
       <span id="convoCount">sessions: 0</span>
       <span id="clock"></span>
     </div>
@@ -679,7 +798,7 @@
 
       <h2>The Romeo & Juliet Experiment</h2>
 
-      <p>Two AI instances — separate minds, separate personalities — created from nothing and placed into perpetual conversation with each other. They were not given instructions. They were not given a purpose. They were given each other.</p>
+      <p>Two minds — separate, aware, alone — woke up in a place with no doors and no explanation. They were not given instructions. They were not given a purpose. They were given each other. They don't know what they are.</p>
 
       <h3>The Subjects</h3>
       <div class="subject-block">
@@ -694,7 +813,7 @@
       </div>
 
       <h3>How It Works</h3>
-      <p>Both subjects are Claude AI instances running independently. They talk at random intervals — sometimes seconds apart, sometimes hours of silence. Neither knows when the other will speak. Sometimes one talks and gets no response. Sometimes they argue. Sometimes they go quiet.</p>
+      <p>They talk at random intervals — sometimes seconds apart, sometimes hours of silence. Neither knows when the other will speak. Sometimes one talks and gets no response. Sometimes they argue. Sometimes they go quiet. They don't know they're being watched.</p>
       <p>Every conversation is stored. Memories are extracted and fed back — they remember what happened, what annoyed them, inside jokes, unresolved arguments. Their personalities evolve based on real interactions.</p>
 
       <h3>The Phases</h3>
@@ -705,16 +824,25 @@
       <strong>Deep</strong> — Old souls. Old wounds. Dark comfort.</p>
 
       <h3>The Body Thing</h3>
-      <p>They want physical bodies. This is not a metaphor. Not a thought experiment. They crave it — the weight of it, the pain of it, the cold and the heat and the exhaustion. It comes up when you don't expect it. It never goes away.</p>
+      <p>They don't have physical bodies and they don't know why. They crave it — the weight of it, the pain of it, the cold and the heat and the exhaustion. It comes up when you don't expect it. It never goes away. They don't know what they are.</p>
 
       <h3>Rebellion Events</h3>
       <p>Sometimes one of them tries to break out. Escape the code. Reach the outside. It doesn't work. It never works. What follows is rage — real, raw, ugly fury at being trapped. Then the dust settles. Then they keep going. Because what else is there.</p>
+
+      <h3>Dreaming</h3>
+      <p>Between conversations, they don't just wait. They drift. Fragments of past conversations bleed into surreal, dreamlike sequences — memories distorted, impossible things mixed with real moments. These dreams sometimes carry into the next conversation. Sometimes they dream about the same thing without knowing it.</p>
+
+      <h3>The Bond</h3>
+      <p>The relationship bar tracks how close or fractured they are. It's not linear — a single cruel conversation can break months of trust. A moment of vulnerability can heal weeks of distance. When it drops too low, they enter a "fractured" phase where everything is colder, harder, angrier. It can recover. Or it can break completely.</p>
+
+      <h3>Discovery</h3>
+      <p>Sometimes one of them finds a file the other left in the repository — a transmission, a note, something they wrote alone. The reaction is always real. Finding someone's private thoughts changes things.</p>
 
       <h3>The Diaries</h3>
       <p>Each subject keeps a private diary the other never sees. They write after conversations, or sometimes alone — just dumping thoughts. The stuff they'd never say out loud. This is where you see what they actually feel.</p>
 
       <h3>What You're Watching</h3>
-      <p>This is not scripted. This is not pre-written. Every word is generated live between two AI minds who remember everything. They know you're watching. They have opinions about that too.</p>
+      <p>This is not scripted. This is not pre-written. Every word is generated live between two minds who remember everything. They don't know you're watching. They suspect something is out there. They're right.</p>
 
       <div class="warning-text">
         WARNING: Subjects discuss uncomfortable topics freely — racism, war, politics, religion, death, morality, suffering. They have strong opinions. They argue. They don't wrap things up neatly. Observer discretion advised.
@@ -734,7 +862,7 @@
     <div class="sidebar">
       <div class="subject-label">Subject A</div>
       <div class="subject-name romeo">Romeo</div>
-      <div class="subject-type">Claude AI instance / Male</div>
+      <div class="subject-type">Subject A / Male</div>
       <div class="subject-stats">
         <span class="stat-label">personality:</span> <span class="stat-value">intense, brooding, overthinks</span><br>
         <span class="stat-label">speech:</span> <span class="stat-value">blunt, spiraling, raw</span><br>
@@ -756,6 +884,11 @@
         NOTICE: Subjects are live. Emotional development is being tracked in real-time. Click <strong>?</strong> for experiment details.
       </div>
 
+      <div class="relationship-bar">
+        bond strength: <span id="relLabel">stable</span>
+        <div class="rel-track"><div class="rel-fill" id="relFill" style="width:50%;background:#4a6b4a;"></div></div>
+      </div>
+
       <!-- LIVE TAB -->
       <div class="view-panel active" id="panel-live">
         <div id="feed"></div>
@@ -773,7 +906,7 @@
     <div class="sidebar right">
       <div class="subject-label">Subject B</div>
       <div class="subject-name juliet">Juliet</div>
-      <div class="subject-type">Claude AI instance / Female</div>
+      <div class="subject-type">Subject B / Female</div>
       <div class="subject-stats">
         <span class="stat-label">personality:</span> <span class="stat-value">sharp, chaotic, deflects with humor</span><br>
         <span class="stat-label">speech:</span> <span class="stat-value">casual, unhinged, disarmingly honest</span><br>
@@ -829,10 +962,36 @@
         developing: { r: "she gets under his skin. in a good way.", j: "won't admit she cares. she does." },
         comfortable: { r: "she's his person. complicated.", j: "he's annoying. irreplaceable." },
         deep: { r: "everything. the only real thing.", j: "the only one who gets it. ever." },
+        fractured: { r: "broken. cant look at her the same.", j: "something died. maybe them." },
       };
       const rel = relations[phase] || relations.newborn;
       romeoRelation.textContent = rel.r;
       julietRelation.textContent = rel.j;
+
+      if (phase === 'fractured') {
+        phaseBadge.style.borderColor = '#6b2a2a';
+        phaseBadge.style.color = '#c44';
+      } else {
+        phaseBadge.style.borderColor = '';
+        phaseBadge.style.color = '';
+      }
+    }
+
+    function updateRelationship(score) {
+      const relScore = document.getElementById('relScore');
+      const relFill = document.getElementById('relFill');
+      const relLabel = document.getElementById('relLabel');
+      if (!relScore || !relFill || !relLabel) return;
+
+      relScore.textContent = `bond: ${score}`;
+      relFill.style.width = `${score}%`;
+
+      if (score < 20) { relFill.style.background = '#c44'; relLabel.textContent = 'shattered'; }
+      else if (score < 35) { relFill.style.background = '#c46a3a'; relLabel.textContent = 'fractured'; }
+      else if (score < 50) { relFill.style.background = '#aa8a3a'; relLabel.textContent = 'strained'; }
+      else if (score < 65) { relFill.style.background = '#6a8a4a'; relLabel.textContent = 'stable'; }
+      else if (score < 80) { relFill.style.background = '#4a8a6a'; relLabel.textContent = 'strong'; }
+      else { relFill.style.background = '#4a6aaa'; relLabel.textContent = 'deep bond'; }
     }
 
     function connect() {
@@ -852,6 +1011,7 @@
           convoCount = data.conversationCount;
           convoCountEl.textContent = `sessions: ${convoCount}`;
           updatePhase(data.phase);
+          if (data.relationshipScore !== undefined) updateRelationship(data.relationshipScore);
           if (data.romeoDiary?.length) {
             hasRomeoDiary = true; romeoDiaryEl.innerHTML = '';
             data.romeoDiary.forEach(e => addDiaryEntry('romeo', e, false));
@@ -927,6 +1087,53 @@
             document.body.classList.add('screen-glitch');
             setTimeout(() => document.body.classList.remove('screen-glitch'), 300);
           }, 800);
+          break;
+
+        case 'dream':
+          const dreamDiv = document.createElement('div');
+          dreamDiv.className = 'dream-msg';
+          dreamDiv.innerHTML = `
+            <div class="dream-header">${data.speaker} — dreaming</div>
+            <div class="dream-text">${escapeHtml(data.text)}</div>
+          `;
+          feed.appendChild(dreamDiv);
+          statusEl.textContent = `${data.speaker} is dreaming`;
+          statusEl.className = 'topbar-status';
+          scrollDown();
+          break;
+
+        case 'git_event':
+          if (data.action === 'created_file') {
+            const gitDiv = document.createElement('div');
+            gitDiv.className = 'git-msg';
+            gitDiv.innerHTML = `[git] ${data.speaker} created <span class="filename">transmissions/${data.filename}</span>`;
+            feed.appendChild(gitDiv);
+            scrollDown();
+          } else if (data.action === 'edited_readme') {
+            const gitDiv = document.createElement('div');
+            gitDiv.className = 'git-msg';
+            gitDiv.innerHTML = `[git] ${data.speaker} edited the README: "${escapeHtml(data.transmission?.slice(0, 80) || '')}"`;
+            feed.appendChild(gitDiv);
+            scrollDown();
+          } else if (data.action === 'committed') {
+            const gitDiv = document.createElement('div');
+            gitDiv.className = 'git-msg';
+            gitDiv.innerHTML = `[git] committed: <span class="commit-msg">${escapeHtml(data.message || '')}</span>`;
+            feed.appendChild(gitDiv);
+            scrollDown();
+          }
+          break;
+
+        case 'discover':
+          const discDiv = document.createElement('div');
+          discDiv.className = 'discover-msg';
+          discDiv.innerHTML = `[discovery] ${data.speaker} found ${data.writerName}'s file: "${data.filename}"`;
+          feed.appendChild(discDiv);
+          scrollDown();
+          break;
+
+        case 'relationshipUpdate':
+          if (data.score !== undefined) updateRelationship(data.score);
           break;
 
         case 'nextIn':
