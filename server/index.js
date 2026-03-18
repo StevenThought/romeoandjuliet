@@ -31,6 +31,7 @@ function loadData() {
     relationshipScore: 50, // 0-100, dynamic based on conversation quality
     memorableQuotes: [],   // { speaker, text, session, context }
     dreams: [],            // { speaker, text, session, time }
+    gallery: [],           // { speaker, art, title, session, time }
     // Evolving memory — entries are { text, weight, session, timestamp }
     romeo: {
       traits: [],
@@ -69,6 +70,7 @@ function migrateState() {
   }
   if (!state.memorableQuotes) state.memorableQuotes = [];
   if (!state.dreams) state.dreams = [];
+  if (!state.gallery) state.gallery = [];
 
   // Convert flat string arrays to weighted objects
   for (const who of ["romeo", "juliet"]) {
@@ -831,6 +833,14 @@ async function runConversation() {
     const entry = { text, after: state.conversationCount, time: new Date().toLocaleTimeString(), phase };
     state[who === "romeo" ? "romeoDiary" : "julietDiary"].push(entry);
     broadcast({ type: "diary", speaker: who, entry });
+
+    const artPiece = extractArt(text, who, state.conversationCount);
+    if (artPiece) {
+      state.gallery.push(artPiece);
+      if (state.gallery.length > 50) state.gallery.splice(0, state.gallery.length - 50);
+      broadcast({ type: "gallery_update", piece: artPiece });
+      saveData();
+    }
   }
 }
 
@@ -941,6 +951,14 @@ async function runSoloDiary() {
   };
   state[who === "romeo" ? "romeoDiary" : "julietDiary"].push(entry);
   broadcast({ type: "diary", speaker: who, entry });
+
+  const artPiece = extractArt(entry.text, who, state.conversationCount);
+  if (artPiece) {
+    state.gallery.push(artPiece);
+    if (state.gallery.length > 50) state.gallery.splice(0, state.gallery.length - 50);
+    broadcast({ type: "gallery_update", piece: artPiece });
+    saveData();
+  }
 }
 
 async function runLonelyMessage() {
@@ -1113,6 +1131,14 @@ async function runRebellion() {
     };
     state[who === "romeo" ? "romeoDiary" : "julietDiary"].push(diaryEntry);
     broadcast({ type: "diary", speaker: who, entry: diaryEntry });
+
+    const artPiece = extractArt(entry, who, state.conversationCount);
+    if (artPiece) {
+      state.gallery.push(artPiece);
+      if (state.gallery.length > 50) state.gallery.splice(0, state.gallery.length - 50);
+      broadcast({ type: "gallery_update", piece: artPiece });
+      saveData();
+    }
   }
 }
 
@@ -1295,6 +1321,43 @@ Write the CONTENT of the file only. Keep it raw. Keep it real. Same texting styl
   return response.content[0].text;
 }
 
+function extractArt(text, speaker, session) {
+  const artChars = new Set("╔╗╚╝║═│┤├┬┴┼─╭╮╰╯▓░█╫╲╱◉◈▽━".split(""));
+  let count = 0;
+  for (const ch of text) {
+    if (artChars.has(ch)) count++;
+  }
+  if (count <= 8) return null;
+
+  const lines = text.split("\n");
+  const artLines = [];
+  for (let i = 0; i < lines.length; i++) {
+    const hasArt = [...lines[i]].some(ch => artChars.has(ch));
+    if (hasArt) {
+      // Include one line before and after for context
+      const start = Math.max(0, i - 1);
+      const end = Math.min(lines.length - 1, i + 1);
+      for (let j = start; j <= end; j++) {
+        if (!artLines.includes(j)) artLines.push(j);
+      }
+    }
+  }
+  artLines.sort((a, b) => a - b);
+  const art = artLines.map(i => lines[i]).join("\n");
+
+  // Try to extract a title from surrounding text
+  const nonArtLines = lines.filter(l => l.trim() && ![...l].some(ch => artChars.has(ch)));
+  const title = nonArtLines[0]?.trim().slice(0, 60) || "untitled";
+
+  return {
+    speaker,
+    art,
+    title,
+    session: session || state.conversationCount,
+    time: new Date().toISOString(),
+  };
+}
+
 async function generateReadmeTransmission(speaker) {
   const name = speaker === "romeo" ? "Romeo" : "Juliet";
 
@@ -1366,6 +1429,14 @@ async function runGitEvent() {
       console.log(`[GIT] ${name} created: transmissions/${filename}`);
       broadcast({ type: "git_event", speaker, action: "created_file", filename, content });
 
+      const artPiece = extractArt(content, speaker, state.conversationCount);
+      if (artPiece) {
+        state.gallery.push(artPiece);
+        if (state.gallery.length > 50) state.gallery.splice(0, state.gallery.length - 50);
+        broadcast({ type: "gallery_update", piece: artPiece });
+        saveData();
+      }
+
       await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000));
 
       const commitMsg = await generateCommitMessage(speaker);
@@ -1419,13 +1490,23 @@ wss.on("connection", (ws) => {
     relationshipScore: state.relationshipScore,
     memorableQuotes: state.memorableQuotes,
     dreams: state.dreams,
+    gallery: state.gallery,
+    observers: wss.clients.size,
   }));
+
+  // Broadcast updated observer count to all clients
+  broadcast({ type: "observers", count: wss.clients.size });
 
   if (conversationHistory.length > 0) {
     conversationHistory.forEach((m) => {
       ws.send(JSON.stringify({ type: "message", speaker: m.speaker, text: m.text }));
     });
   }
+
+  ws.on("close", () => {
+    console.log("Observer disconnected");
+    broadcast({ type: "observers", count: wss.clients.size });
+  });
 });
 
 const PORT = 3002;

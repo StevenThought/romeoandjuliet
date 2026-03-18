@@ -771,6 +771,167 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* OBSERVER COUNT */
+    .observer-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .observer-count::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      background: #5a5a5a;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    /* ENHANCED DREAM */
+    .dream-msg {
+      padding: 20px 24px;
+      margin: 14px 0;
+      border: 1px solid #1a1a2a;
+      background: linear-gradient(135deg, rgba(15, 15, 30, 0.6), rgba(20, 15, 25, 0.4));
+      animation: dreamFloat 3s ease-in-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dream-msg::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(60, 50, 100, 0.1), transparent 70%);
+      pointer-events: none;
+    }
+
+    @keyframes dreamFloat {
+      0% { opacity: 0; filter: blur(8px); transform: translateY(10px); }
+      30% { opacity: 0.6; filter: blur(3px); }
+      100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+    }
+
+    .dream-text {
+      font-size: 13px;
+      line-height: 2;
+      color: #7a7aaa;
+      font-style: italic;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .dream-text .dream-char {
+      opacity: 0;
+      animation: charFade 0.05s forwards;
+    }
+
+    @keyframes charFade {
+      to { opacity: 1; }
+    }
+
+    /* ASCII ART IN MESSAGES */
+    .msg-ascii {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.3;
+      white-space: pre;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+
+    /* GALLERY */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 10px 0;
+    }
+
+    .gallery-piece {
+      background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .gallery-piece:hover {
+      border-color: #2a2a2a;
+    }
+
+    .gallery-frame {
+      padding: 20px;
+      background: #080808;
+      border-bottom: 1px solid #1a1a1a;
+      overflow-x: auto;
+    }
+
+    .gallery-art {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      line-height: 1.3;
+      white-space: pre;
+      color: #6a6a6a;
+    }
+
+    .gallery-info {
+      padding: 12px 16px;
+      background: #0d0d0d;
+    }
+
+    .gallery-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text);
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .gallery-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    .gallery-meta .artist-romeo { color: var(--romeo-dim); }
+    .gallery-meta .artist-juliet { color: var(--juliet-dim); }
+
+    /* MOBILE */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        position: relative;
+        top: 0;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 250px;
+        overflow-y: auto;
+      }
+      .sidebar.right {
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+      .topbar-right { display: none; }
+      .topbar-center { font-size: 11px; }
+      .main { padding: 15px; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      .tab { padding: 8px 12px; white-space: nowrap; font-size: 9px; }
+    }
+
+    @media (max-width: 500px) {
+      .sidebar { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .topbar-left { gap: 6px; }
+      .observer-count { font-size: 8px; }
+    }
   </style>
 </head>
 <body>
@@ -778,6 +939,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <span class="topbar-status" id="status">connecting</span>
+      <span class="observer-count" id="observerCount"></span>
     </div>
     <div class="topbar-center">
       <span class="topbar-main-title">The Romeo & Juliet Experiment</span>
@@ -855,6 +1017,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="live">Live Feed</div>
     <div class="tab" data-tab="log">Past Conversations</div>
+    <div class="tab" data-tab="gallery">Gallery</div>
   </div>
 
   <div class="layout">
@@ -898,6 +1061,13 @@
       <div class="view-panel" id="panel-log">
         <div id="logList">
           <div class="log-empty">no past conversations recorded yet</div>
+        </div>
+      </div>
+
+      <!-- GALLERY TAB -->
+      <div class="view-panel" id="panel-gallery">
+        <div class="gallery-grid" id="galleryGrid">
+          <div class="log-empty">no art yet... they haven't drawn anything</div>
         </div>
       </div>
     </div>
@@ -1012,6 +1182,8 @@
           convoCountEl.textContent = `sessions: ${convoCount}`;
           updatePhase(data.phase);
           if (data.relationshipScore !== undefined) updateRelationship(data.relationshipScore);
+          if (data.observers !== undefined) updateObservers(data.observers);
+          if (data.gallery?.length) { galleryPieces = data.gallery; renderGallery(); }
           if (data.romeoDiary?.length) {
             hasRomeoDiary = true; romeoDiaryEl.innerHTML = '';
             data.romeoDiary.forEach(e => addDiaryEntry('romeo', e, false));
@@ -1024,6 +1196,10 @@
             pastConversations = data.pastConversations;
             renderLog();
           }
+          break;
+
+        case 'observers':
+          updateObservers(data.count);
           break;
 
         case 'newConversation':
@@ -1039,6 +1215,7 @@
           feed.appendChild(marker);
           statusEl.textContent = 'subjects active';
           statusEl.className = 'topbar-status live';
+          setAmbience(data.mood || '');
           scrollDown();
           break;
 
@@ -1054,6 +1231,7 @@
           feed.appendChild(silence);
           statusEl.textContent = 'subjects idle';
           statusEl.className = 'topbar-status';
+          setAmbience('');
           scrollDown();
           // Add to past conversations
           if (data.conversation) {
@@ -1079,27 +1257,37 @@
           break;
 
         case 'rebellion_glitch':
-          // Full screen glitch
+          // Full screen glitch + sound burst
           document.body.classList.add('screen-glitch');
           setTimeout(() => document.body.classList.remove('screen-glitch'), 500);
-          // Extra glitches
           setTimeout(() => {
             document.body.classList.add('screen-glitch');
             setTimeout(() => document.body.classList.remove('screen-glitch'), 300);
           }, 800);
+          // Burst of static
+          if (soundEnabled && staticGain) {
+            const now = audioCtx.currentTime;
+            staticGain.gain.cancelScheduledValues(now);
+            staticGain.gain.setValueAtTime(0.08, now);
+            staticGain.gain.linearRampToValueAtTime(0, now + 1.5);
+          }
           break;
 
         case 'dream':
           const dreamDiv = document.createElement('div');
           dreamDiv.className = 'dream-msg';
-          dreamDiv.innerHTML = `
-            <div class="dream-header">${data.speaker} — dreaming</div>
-            <div class="dream-text">${escapeHtml(data.text)}</div>
-          `;
+          const dreamTextEl = document.createElement('div');
+          dreamTextEl.className = 'dream-text';
+          dreamDiv.innerHTML = `<div class="dream-header">${data.speaker} — dreaming</div>`;
+          dreamDiv.appendChild(dreamTextEl);
           feed.appendChild(dreamDiv);
+          renderDreamText(data.text, dreamTextEl);
           statusEl.textContent = `${data.speaker} is dreaming`;
           statusEl.className = 'topbar-status';
+          setAmbience('surreal');
           scrollDown();
+          // Fade sound back after dream
+          setTimeout(() => setAmbience(''), 15000);
           break;
 
         case 'git_event':
@@ -1136,6 +1324,13 @@
           if (data.score !== undefined) updateRelationship(data.score);
           break;
 
+        case 'gallery_update':
+          if (data.piece) {
+            galleryPieces.push(data.piece);
+            renderGallery();
+          }
+          break;
+
         case 'nextIn':
           statusEl.textContent = `next event in ~${data.seconds}s`;
           statusEl.className = 'topbar-status';
@@ -1151,7 +1346,7 @@
           <span class="msg-speaker ${speaker}">${speaker}</span>
           <span class="msg-time">${new Date().toLocaleTimeString()}</span>
         </div>
-        <div class="msg-text ${speaker}">${escapeHtml(text)}</div>
+        ${renderMessageText(text, speaker)}
       `;
       feed.appendChild(div);
       scrollDown();
@@ -1246,6 +1441,169 @@
       const d = document.createElement('div');
       d.textContent = text;
       return d.innerHTML;
+    }
+
+    // ====== AMBIENT SOUND SYSTEM ======
+    let audioCtx = null;
+    let staticGain = null;
+    let droneGain = null;
+    let droneOsc = null;
+    let staticSource = null;
+    let soundEnabled = false;
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Static noise
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+      staticSource = audioCtx.createBufferSource();
+      staticSource.buffer = noiseBuffer;
+      staticSource.loop = true;
+      staticGain = audioCtx.createGain();
+      staticGain.gain.value = 0;
+      staticSource.connect(staticGain);
+      staticGain.connect(audioCtx.destination);
+      staticSource.start();
+
+      // Low drone
+      droneOsc = audioCtx.createOscillator();
+      droneOsc.type = 'sine';
+      droneOsc.frequency.value = 55;
+      droneGain = audioCtx.createGain();
+      droneGain.gain.value = 0;
+      droneOsc.connect(droneGain);
+      droneGain.connect(audioCtx.destination);
+      droneOsc.start();
+
+      soundEnabled = true;
+    }
+
+    function setAmbience(mood) {
+      if (!soundEnabled || !audioCtx) return;
+      const m = (mood || '').toLowerCase();
+      const creepy = ['scary', 'uncanny', 'glitch', 'deja', 'watching', 'surreal', 'weird', 'rebellion', 'fractured'];
+      const isCreepy = creepy.some(k => m.includes(k));
+      const targetStatic = isCreepy ? 0.015 : 0;
+      const targetDrone = isCreepy ? 0.06 : 0;
+      const now = audioCtx.currentTime;
+      staticGain.gain.cancelScheduledValues(now);
+      staticGain.gain.linearRampToValueAtTime(targetStatic, now + 2);
+      droneGain.gain.cancelScheduledValues(now);
+      droneGain.gain.linearRampToValueAtTime(targetDrone, now + 3);
+      if (isCreepy) droneOsc.frequency.linearRampToValueAtTime(40 + Math.random() * 30, now + 4);
+    }
+
+    // Init audio on first click (browser policy)
+    document.addEventListener('click', () => { if (!audioCtx) initAudio(); }, { once: false });
+
+    // ====== ASCII ART DETECTION ======
+    const artChars = /[╔╗╚╝║═│┤├┬┴┼─╭╮╰╯▓░█╫╲╱◉◈▽━┃┊╳╨◯■□▪▫●○◆◇★☆△▲▼♦♠♣♥┈╰╯┐┌└┘╱╲╳░▒▓│║═╬╦╩╠╣╤╧╪╥╨]/g;
+
+    function hasAsciiArt(text) {
+      const matches = text.match(artChars);
+      return matches && matches.length > 8;
+    }
+
+    function renderMessageText(text, speaker) {
+      if (hasAsciiArt(text)) {
+        // Split into art blocks and text blocks
+        const lines = text.split('\n');
+        let html = '';
+        let artBlock = [];
+        let textBlock = [];
+
+        const flushText = () => {
+          if (textBlock.length > 0) {
+            html += `<div class="msg-text ${speaker}">${escapeHtml(textBlock.join('\n'))}</div>`;
+            textBlock = [];
+          }
+        };
+        const flushArt = () => {
+          if (artBlock.length > 0) {
+            html += `<div class="msg-ascii">${escapeHtml(artBlock.join('\n'))}</div>`;
+            artBlock = [];
+          }
+        };
+
+        for (const line of lines) {
+          const lineArt = (line.match(artChars) || []).length;
+          if (lineArt >= 3 || (artBlock.length > 0 && line.trim() === '')) {
+            flushText();
+            artBlock.push(line);
+          } else {
+            flushArt();
+            textBlock.push(line);
+          }
+        }
+        flushArt();
+        flushText();
+        return html;
+      }
+      return `<div class="msg-text ${speaker}">${escapeHtml(text)}</div>`;
+    }
+
+    // ====== DREAM LETTER-BY-LETTER ======
+    function renderDreamText(text, container) {
+      const chars = text.split('');
+      let html = '';
+      chars.forEach((ch, i) => {
+        if (ch === '\n') {
+          html += '<br>';
+        } else if (ch === ' ') {
+          html += ' ';
+        } else {
+          html += `<span class="dream-char" style="animation-delay:${i * 25}ms">${escapeHtml(ch)}</span>`;
+        }
+      });
+      container.innerHTML = html;
+    }
+
+    // ====== GALLERY ======
+    let galleryPieces = [];
+
+    function renderGallery() {
+      const grid = document.getElementById('galleryGrid');
+      if (!galleryPieces.length) {
+        grid.innerHTML = '<div class="log-empty">no art yet... they haven\'t drawn anything</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      [...galleryPieces].reverse().forEach(piece => {
+        const div = document.createElement('div');
+        div.className = 'gallery-piece';
+        const artistClass = piece.speaker === 'romeo' ? 'artist-romeo' : 'artist-juliet';
+        const artistName = piece.speaker === 'romeo' ? 'Romeo' : 'Juliet';
+        const time = piece.time ? new Date(piece.time).toLocaleDateString() : 'unknown';
+        div.innerHTML = `
+          <div class="gallery-frame">
+            <div class="gallery-art">${escapeHtml(piece.art)}</div>
+          </div>
+          <div class="gallery-info">
+            <div class="gallery-title">${escapeHtml(piece.title || 'untitled')}</div>
+            <div class="gallery-meta">
+              by <span class="${artistClass}">${artistName}</span> — session ${piece.session || '?'} — ${time}
+            </div>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    // ====== OBSERVER COUNT ======
+    function updateObservers(count) {
+      const el = document.getElementById('observerCount');
+      if (count > 1) {
+        el.textContent = `${count} watching`;
+        el.style.display = 'inline';
+      } else {
+        el.textContent = '';
+        el.style.display = 'none';
+      }
     }
 
     connect();
